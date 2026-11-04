@@ -779,7 +779,7 @@ final class BangNhanVienView: UIView, UITableViewDataSource, UITableViewDelegate
     private var danhSachDaNapUI: [TongHopNhanVien]?
     private var cheDoDaNapUI: LoaiCheDoDoanhThu?
 
-    private let chieuRongCot: [CGFloat] = [44, 195, 96, 84, 78, 92, 92, 92]
+    private let chieuRongCot: [CGFloat] = [44, 205, 96, 84, 82, 92, 92]
     private var tongChieuRongBang: CGFloat { chieuRongCot.reduce(0, +) }
 
     private let nhanTieuDe = UILabel()
@@ -978,7 +978,7 @@ final class BangNhanVienView: UIView, UITableViewDataSource, UITableViewDelegate
         let khung = UIView(frame: CGRect(x: 0, y: 0, width: tongChieuRongBang, height: 42))
         khung.backgroundColor = .systemGray5
 
-        let tieuDe = ["HẠNG", "NHÂN VIÊN (CHẠM XEM MÔN)", "SỐ MÔN ĐẠT", "% HT TB", "SỐ LƯỢNG", "DOANH THU QĐ", "DT KHOẢN VAY", "DT TRẢ THẲNG"]
+        let tieuDe = ["HẠNG", "NHÂN VIÊN (CHẠM XEM MÔN)", "SỐ MÔN ĐẠT", "% HT TB", "SỐ LƯỢNG", "DT QĐ", "% TỈ TRỌNG"]
         var xHienTai: CGFloat = 0
         for (i, chu) in tieuDe.enumerated() {
             let w = chieuRongCot[i]
@@ -1003,7 +1003,7 @@ final class BangNhanVienView: UIView, UITableViewDataSource, UITableViewDelegate
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let ma = "DongTongHopNV8Cot"
+        let ma = "DongTongHopNV7Cot"
         let cell = tableView.dequeueReusableCell(withIdentifier: ma) ?? UITableViewCell(style: .default, reuseIdentifier: ma)
         cell.selectionStyle = .default
         cell.contentView.subviews.forEach { $0.removeFromSuperview() }
@@ -1019,6 +1019,7 @@ final class BangNhanVienView: UIView, UITableViewDataSource, UITableViewDelegate
 
         let fontDongNhat = UIFont.monospacedDigitSystemFont(ofSize: 12.5, weight: .bold)
         let fontChuDongNhat = UIFont.systemFont(ofSize: 12.5, weight: .bold)
+        let coDT = row.coDoanhThuCaNhan
 
         var x: CGFloat = 0
         for i in 0..<chieuRongCot.count {
@@ -1087,9 +1088,9 @@ final class BangNhanVienView: UIView, UITableViewDataSource, UITableViewDelegate
                 khung.addSubview(lb)
             case 4:
                 let lb = UILabel(frame: rect.insetBy(dx: 6, dy: 2))
-                lb.text = row.soLuongDon > 0 ? row.soLuongDon.chuoiSoNguyenVN : "--"
+                lb.text = coDT ? row.soLuongDon.chuoiSoNguyenVN : "--"
                 lb.font = fontDongNhat
-                lb.textColor = .secondaryLabel
+                lb.textColor = row.soLuongDon < 0 ? .systemRed : (row.soLuongDon > 0 ? .label : .secondaryLabel)
                 lb.textAlignment = .right
                 lb.numberOfLines = 0
                 lb.lineBreakMode = .byWordWrapping
@@ -1097,9 +1098,11 @@ final class BangNhanVienView: UIView, UITableViewDataSource, UITableViewDelegate
                 khung.addSubview(lb)
             case 5:
                 let lb = UILabel(frame: rect.insetBy(dx: 6, dy: 2))
-                lb.text = row.doanhThuQD > 0 ? row.doanhThuQD.chuoiSoLieu : "--"
+                lb.text = coDT ? row.doanhThuQD.chuoiSoLieu : "--"
                 lb.font = fontDongNhat
-                lb.textColor = UIColor(red: 0.08, green: 0.50, blue: 0.24, alpha: 1)
+                lb.textColor = row.doanhThuQD > 0
+                    ? UIColor(red: 0.08, green: 0.50, blue: 0.24, alpha: 1)
+                    : (row.doanhThuQD < 0 ? .systemRed : .secondaryLabel)
                 lb.textAlignment = .right
                 lb.numberOfLines = 0
                 lb.lineBreakMode = .byWordWrapping
@@ -1107,18 +1110,11 @@ final class BangNhanVienView: UIView, UITableViewDataSource, UITableViewDelegate
                 khung.addSubview(lb)
             case 6:
                 let lb = UILabel(frame: rect.insetBy(dx: 6, dy: 2))
-                lb.text = row.dtQDKhoanVay > 0 ? row.dtQDKhoanVay.chuoiSoLieu : "0"
+                lb.text = coDT ? String(format: "%.1f%%", row.phanTramTyTrong) : "--"
                 lb.font = fontDongNhat
-                lb.textColor = .secondaryLabel
-                lb.textAlignment = .right
-                lb.numberOfLines = 0
-                lb.lineBreakMode = .byWordWrapping
-                lb.adjustsFontSizeToFitWidth = false
-                khung.addSubview(lb)
-            case 7:
-                let lb = UILabel(frame: rect.insetBy(dx: 6, dy: 2))
-                lb.text = row.dtTraThangQD > 0 ? row.dtTraThangQD.chuoiSoLieu : "--"
-                lb.font = fontDongNhat
+                lb.textColor = row.phanTramTyTrong > 0
+                    ? .systemBlue
+                    : (row.phanTramTyTrong < 0 ? .systemRed : .secondaryLabel)
                 lb.textAlignment = .right
                 lb.numberOfLines = 0
                 lb.lineBreakMode = .byWordWrapping
@@ -1162,7 +1158,6 @@ final class BangNhanVienView: UIView, UITableViewDataSource, UITableViewDelegate
 
         let tongDTQD = ds.reduce(0.0) { $0 + $1.doanhThuQD }
         let tongDon = ds.reduce(0.0) { $0 + $1.soLuongDon }
-        let tongVay = ds.reduce(0.0) { $0 + $1.dtQDKhoanVay }
         let tbHT = ds.isEmpty ? 0.0 : (ds.reduce(0.0) { $0 + $1.phanTramHTTB } / Double(ds.count))
 
         let le: CGFloat = 18
@@ -1187,7 +1182,7 @@ final class BangNhanVienView: UIView, UITableViewDataSource, UITableViewDelegate
             context: nil
         ).height))
 
-        let chuTomTat = "Tổng DT Quy đổi (\(cheDoXuat.tieuDe)): \(tongDTQD.chuoiSoGonVN)   •   Tổng đơn: \(tongDon.chuoiSoNguyenVN)   •   DT Khoản vay: \(tongVay.chuoiSoGonVN)   •   % HT TB: \(String(format: "%.1f%%", tbHT))"
+        let chuTomTat = "Tổng DT QĐ (\(cheDoXuat.tieuDe)): \(tongDTQD.chuoiSoGonVN)   •   Tổng Số lượng: \(tongDon.chuoiSoNguyenVN)   •   % HT TB: \(String(format: "%.1f%%", tbHT))"
         let fontTomTat = UIFont.systemFont(ofSize: 12.5, weight: .bold)
         let caoTextTomTat = max(24, ceil((chuTomTat as NSString).boundingRect(
             with: CGSize(width: rongBang - 24, height: CGFloat.greatestFiniteMagnitude),
@@ -1395,10 +1390,10 @@ final class ManHinhChiTietNhanVien: UIViewController, UITableViewDataSource, UIT
             fill.widthAnchor.constraint(equalTo: track.widthAnchor, multiplier: tyLeTD)
         ])
 
+        let coDT = tongHop.coDoanhThuCaNhan
         let dtQD = tongHop.doanhThuQD
-        let dtThang = tongHop.dtTraThangQD
         let soDon = tongHop.soLuongDon
-        let dtVay = tongHop.dtQDKhoanVay
+        let tyTrong = tongHop.phanTramTyTrong
         let tongMon = tongHop.tongMonGiao
         let soMonDat = tongHop.soMonDat
         let soMonChua = tongMon - soMonDat
@@ -1410,8 +1405,8 @@ final class ManHinhChiTietNhanVien: UIViewController, UITableViewDataSource, UIT
             mauKetThuc: UIColor(red: 0.23, green: 0.25, blue: 0.89, alpha: 1)
         )
         the1.capNhatNoiDung(
-            chinh: dtQD > 0 ? "\(dtQD.chuoiSoGonVN)tr" : "--",
-            phu: dtThang > 0 ? "DT THẲNG: \(dtThang.chuoiSoGonVN)" : "SL: \(soDon.chuoiSoNguyenVN) ĐƠN"
+            chinh: coDT ? "\(dtQD.chuoiSoGonVN)tr" : "--",
+            phu: coDT ? "TỈ TRỌNG: \(String(format: "%.1f%%", tyTrong))" : "SL: --"
         )
 
         let the2 = TheDoanhThuView(
@@ -1425,13 +1420,13 @@ final class ManHinhChiTietNhanVien: UIViewController, UITableViewDataSource, UIT
         )
 
         let the3 = TheDoanhThuView(
-            tieuDe: "📦 SỐ LƯỢNG / KHOẢN VAY",
+            tieuDe: "📦 SỐ LƯỢNG & TỈ TRỌNG",
             mauBatDau: UIColor(red: 0.09, green: 0.61, blue: 0.27, alpha: 1),
             mauKetThuc: UIColor(red: 0.08, green: 0.50, blue: 0.24, alpha: 1)
         )
         the3.capNhatNoiDung(
-            chinh: soDon > 0 ? soDon.chuoiSoNguyenVN : "--",
-            phu: "QĐ VAY: \(dtVay.chuoiSoGonVN)"
+            chinh: coDT ? soDon.chuoiSoNguyenVN : "--",
+            phu: coDT ? "% TỈ TRỌNG: \(String(format: "%.1f%%", tyTrong))" : "% TỈ TRỌNG: --"
         )
 
         let the4 = TheDoanhThuView(
@@ -1848,10 +1843,10 @@ final class ManHinhChiTietNhanVien: UIViewController, UITableViewDataSource, UIT
 
         y += caoTienDo + 10
 
+        let coDT = tongHop.coDoanhThuCaNhan
         let dtQD = tongHop.doanhThuQD
-        let dtThang = tongHop.dtTraThangQD
         let soDon = tongHop.soLuongDon
-        let dtVay = tongHop.dtQDKhoanVay
+        let tyTrong = tongHop.phanTramTyTrong
         let tongMon = tongHop.tongMonGiao
         let soMonDat = tongHop.soMonDat
         let soMonChua = tongMon - soMonDat
@@ -1863,8 +1858,8 @@ final class ManHinhChiTietNhanVien: UIViewController, UITableViewDataSource, UIT
             mauKetThuc: UIColor(red: 0.23, green: 0.25, blue: 0.89, alpha: 1)
         )
         the1.capNhatNoiDung(
-            chinh: dtQD > 0 ? "\(dtQD.chuoiSoGonVN)tr" : "--",
-            phu: dtThang > 0 ? "DT THẲNG: \(dtThang.chuoiSoGonVN)" : "SL: \(soDon.chuoiSoNguyenVN) ĐƠN",
+            chinh: coDT ? "\(dtQD.chuoiSoGonVN)tr" : "--",
+            phu: coDT ? "TỈ TRỌNG: \(String(format: "%.1f%%", tyTrong))" : "SL: --",
             coLon: true
         )
 
@@ -1880,13 +1875,13 @@ final class ManHinhChiTietNhanVien: UIViewController, UITableViewDataSource, UIT
         )
 
         let the3 = TheDoanhThuView(
-            tieuDe: "📦 SỐ LƯỢNG / KHOẢN VAY",
+            tieuDe: "📦 SỐ LƯỢNG & TỈ TRỌNG",
             mauBatDau: UIColor(red: 0.09, green: 0.61, blue: 0.27, alpha: 1),
             mauKetThuc: UIColor(red: 0.08, green: 0.50, blue: 0.24, alpha: 1)
         )
         the3.capNhatNoiDung(
-            chinh: soDon > 0 ? soDon.chuoiSoNguyenVN : "--",
-            phu: "QĐ VAY: \(dtVay.chuoiSoGonVN)",
+            chinh: coDT ? soDon.chuoiSoNguyenVN : "--",
+            phu: coDT ? "% TỈ TRỌNG: \(String(format: "%.1f%%", tyTrong))" : "% TỈ TRỌNG: --",
             coLon: true
         )
 

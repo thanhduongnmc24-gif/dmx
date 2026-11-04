@@ -61,51 +61,30 @@ struct DoanhThuNhanVienItem: Codable, Hashable {
     var maNV: String
     var hoTen: String
     var soLuong: Double = 0
-    var doanhThuThuc: Double = 0
     var doanhThuQD: Double = 0
-    var target: Double = 0
-    var dtQDKhoanVay: Double = 0
-    var dtTraThangQD: Double = 0
-    var dtTraGop: Double = 0
-    var phanTramHT: Double = 0
-    var phanTramQuyDoi: Double = 0
-    var phanTramTraGop: Double = 0
-    var gioCong: Double = 0
-    var soNgayNghi: Double = 0
-    var nangSuat: Double = 0
+    var phanTramTyTrong: Double = 0
+
+    enum CodingKeys: String, CodingKey {
+        case maNV
+        case hoTen
+        case soLuong
+        case doanhThuQD
+        case phanTramTyTrong
+        case dtTraThangQD
+    }
 
     init(
         maNV: String,
         hoTen: String,
         soLuong: Double = 0,
-        doanhThuThuc: Double = 0,
         doanhThuQD: Double = 0,
-        target: Double = 0,
-        dtQDKhoanVay: Double = 0,
-        dtTraThangQD: Double = 0,
-        dtTraGop: Double = 0,
-        phanTramHT: Double = 0,
-        phanTramQuyDoi: Double = 0,
-        phanTramTraGop: Double = 0,
-        gioCong: Double = 0,
-        soNgayNghi: Double = 0,
-        nangSuat: Double = 0
+        phanTramTyTrong: Double = 0
     ) {
         self.maNV = maNV
         self.hoTen = hoTen
         self.soLuong = soLuong
-        self.doanhThuThuc = doanhThuThuc
         self.doanhThuQD = doanhThuQD
-        self.target = target
-        self.dtQDKhoanVay = dtQDKhoanVay
-        self.dtTraThangQD = dtTraThangQD
-        self.dtTraGop = dtTraGop
-        self.phanTramHT = phanTramHT
-        self.phanTramQuyDoi = phanTramQuyDoi
-        self.phanTramTraGop = phanTramTraGop
-        self.gioCong = gioCong
-        self.soNgayNghi = soNgayNghi
-        self.nangSuat = nangSuat
+        self.phanTramTyTrong = phanTramTyTrong
     }
 
     init(from decoder: Decoder) throws {
@@ -113,18 +92,21 @@ struct DoanhThuNhanVienItem: Codable, Hashable {
         maNV = (try? c.decode(String.self, forKey: .maNV)) ?? ""
         hoTen = (try? c.decode(String.self, forKey: .hoTen)) ?? ""
         soLuong = (try? c.decode(Double.self, forKey: .soLuong)) ?? 0
-        doanhThuThuc = (try? c.decode(Double.self, forKey: .doanhThuThuc)) ?? 0
         doanhThuQD = (try? c.decode(Double.self, forKey: .doanhThuQD)) ?? 0
-        target = (try? c.decode(Double.self, forKey: .target)) ?? 0
-        dtQDKhoanVay = (try? c.decode(Double.self, forKey: .dtQDKhoanVay)) ?? 0
-        dtTraThangQD = (try? c.decode(Double.self, forKey: .dtTraThangQD)) ?? 0
-        dtTraGop = (try? c.decode(Double.self, forKey: .dtTraGop)) ?? 0
-        phanTramHT = (try? c.decode(Double.self, forKey: .phanTramHT)) ?? 0
-        phanTramQuyDoi = (try? c.decode(Double.self, forKey: .phanTramQuyDoi)) ?? 0
-        phanTramTraGop = (try? c.decode(Double.self, forKey: .phanTramTraGop)) ?? 0
-        gioCong = (try? c.decode(Double.self, forKey: .gioCong)) ?? 0
-        soNgayNghi = (try? c.decode(Double.self, forKey: .soNgayNghi)) ?? 0
-        nangSuat = (try? c.decode(Double.self, forKey: .nangSuat)) ?? 0
+        if let tyTrong = try? c.decode(Double.self, forKey: .phanTramTyTrong) {
+            phanTramTyTrong = tyTrong
+        } else {
+            phanTramTyTrong = (try? c.decode(Double.self, forKey: .dtTraThangQD)) ?? 0
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(maNV, forKey: .maNV)
+        try c.encode(hoTen, forKey: .hoTen)
+        try c.encode(soLuong, forKey: .soLuong)
+        try c.encode(doanhThuQD, forKey: .doanhThuQD)
+        try c.encode(phanTramTyTrong, forKey: .phanTramTyTrong)
     }
 }
 
@@ -157,10 +139,13 @@ struct TongHopNhanVien: Hashable {
     var phanTramHTTB: Double
     var doanhThuQD: Double
     var soLuongDon: Double
-    var dtQDKhoanVay: Double
-    var dtTraThangQD: Double
+    var phanTramTyTrong: Double
     var cacMonGiao: [MonThiDuaNhanVien]
     var doanhThuCaNhan: DoanhThuNhanVienItem?
+
+    var coDoanhThuCaNhan: Bool {
+        doanhThuCaNhan != nil
+    }
 }
 
 enum LoaiBieuDoThang: Int, CaseIterable {
@@ -1614,8 +1599,7 @@ final class KhoDuLieu {
                 phanTramHTTB: phanTramHTTB,
                 doanhThuQD: dtCaNhan?.doanhThuQD ?? 0,
                 soLuongDon: dtCaNhan?.soLuong ?? 0,
-                dtQDKhoanVay: dtCaNhan?.dtQDKhoanVay ?? 0,
-                dtTraThangQD: (dtCaNhan?.dtTraThangQD ?? 0) > 0 ? (dtCaNhan?.dtTraThangQD ?? 0) : (dtCaNhan?.doanhThuThuc ?? 0),
+                phanTramTyTrong: dtCaNhan?.phanTramTyTrong ?? 0,
                 cacMonGiao: cacMonGiao,
                 doanhThuCaNhan: dtCaNhan
             )
@@ -1738,22 +1722,10 @@ final class KhoDuLieu {
             let khoaMoi = khoaGocMoi.isEmpty ? chuanHoaKhoaSoSanh(dongMoi.tenNganhHang) : khoaGocMoi
             guard !khoaMoi.isEmpty else { continue }
 
-            let khoaCoBanMoi = khoaMoi.replacingOccurrences(of: "\\s*#?\\d+$", with: "", options: .regularExpression)
-
-            // Ưu tiên khớp theo cùng tên cơ bản + cùng Target (để các dòng trùng tên bị cắt cụt như 2 dòng "T11 - Trả chậm..." khớp đúng Target 57.51 hay 91.08 khi quét nối tiếp nhiều ảnh)
-            let viTriKhopTarget: Int? = (dongMoi.target > 0) ? ketQua.firstIndex(where: {
-                let kg = chuanHoaKhoaSoSanh($0.tenNganhHangGoc)
-                let k = kg.isEmpty ? chuanHoaKhoaSoSanh($0.tenNganhHang) : kg
-                let kCoBan = k.replacingOccurrences(of: "\\s*#?\\d+$", with: "", options: .regularExpression)
-                return kCoBan == khoaCoBanMoi && abs($0.target - dongMoi.target) < 0.01
-            }) : nil
-
-            let viTriKhopTen = ketQua.firstIndex(where: {
+            if let viTri = ketQua.firstIndex(where: {
                 let kg = chuanHoaKhoaSoSanh($0.tenNganhHangGoc)
                 return (kg.isEmpty ? chuanHoaKhoaSoSanh($0.tenNganhHang) : kg) == khoaMoi
-            })
-
-            if let viTri = viTriKhopTarget ?? viTriKhopTen {
+            }) {
                 var dongCu = ketQua[viTri]
                 if dongMoi.tenNganhHangGoc.count > dongCu.tenNganhHangGoc.count && !dongMoi.tenNganhHangGoc.hasSuffix("...") {
                     dongCu.tenNganhHangGoc = dongMoi.tenNganhHangGoc
@@ -1822,6 +1794,9 @@ final class KhoDuLieu {
         if !maSach.isEmpty {
             if let theoMa = dsQuanLy.first(where: { $0.maNV == maSach }) {
                 return theoMa
+            }
+            if dsQuanLy.contains(where: { !$0.maNV.isEmpty }) {
+                return nil
             }
         }
         let tenKhongSo = tenQuet
@@ -1938,12 +1913,7 @@ final class KhoDuLieu {
 
                 let diemDT: Double
                 if coDoanhThu && tbDTQD > 0 {
-                    let diemSoVoiTB = min(100.0, (th.doanhThuQD / tbDTQD) * 74.0)
-                    if let ptCN = th.doanhThuCaNhan?.phanTramHT, ptCN > 0 {
-                        diemDT = 0.45 * min(100.0, ptCN) + 0.55 * diemSoVoiTB
-                    } else {
-                        diemDT = diemSoVoiTB
-                    }
+                    diemDT = min(100.0, max(0.0, (th.doanhThuQD / tbDTQD) * 74.0))
                 } else {
                     diemDT = 0
                 }
@@ -2029,8 +1999,7 @@ final class KhoDuLieu {
                 phanTramHTTB: 0,
                 doanhThuQD: 0,
                 soLuongDon: 0,
-                dtQDKhoanVay: 0,
-                dtTraThangQD: 0,
+                phanTramTyTrong: 0,
                 cacMonGiao: [],
                 doanhThuCaNhan: nil
             )
